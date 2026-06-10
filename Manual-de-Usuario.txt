@@ -1,0 +1,48 @@
+
+   MANUAL DE USUARIO - PURE INKA FOODS (GESTIÓN DE VENTAS)
+   -------------------------------------------------------
+
+   [ 1. ACCESOS RÁPIDOS PARA PRUEBAS ]
+   
+   👤 ROL CLIENTE
+      - Correo: berna@gmail.com
+      - Clave : sasasa
+
+   🔑 ROL ADMINISTRADOR
+      - Correo: admin@pureinka.com
+      - Clave : Admin123
+
+
+   [ 2. EXPERIENCIA DEL CLIENTE ]
+
+   > Registro Seguro:
+     Al crear su cuenta, deberá ingresar un código de 6 dígitos.
+     (Busque el código en la consola del servidor Backend).
+
+   > Exploración Inteligente:
+     Navegue por la tienda. Al hacer clic en un producto, verá 
+     la descripción detallada y sugerencias automáticas de 
+     artículos similares.
+
+   > Carrito y Pago:
+     El sistema valida el stock antes de pagar. Puede elegir 
+     Stripe o Yape/Plin (subiendo su captura de pago).
+
+   > Gestión de Pedidos:
+     Desde "Mi Perfil" descargue sus comprobantes PDF o cancele 
+     pedidos que aún no hayan sido procesados.
+
+
+   [ 3. PANEL ADMINISTRATIVO ]
+
+   > Centro de Mando:
+     Monitoree ingresos reales, ticket promedio y usuarios nuevos.
+     Atienda las alertas rojas de "Inventario Crítico" de inmediato.
+
+   > Control Operativo:
+     Gestione productos, actualice stock y cambie el estado de 
+     los pedidos para informar al cliente.
+
+   > Seguridad y Auditoría:
+     El sistema bloquea cuentas tras 5 fallos. Revise la carpeta 
+     '/logs' para ver el historial detallado de errores.

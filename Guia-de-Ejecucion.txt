@@ -1,0 +1,37 @@
+
+   GUÍA DE EJECUCIÓN TÉCNICA - PURE INKA FOODS
+   -------------------------------------------
+
+   [ 1. PRE-REQUISITOS ]
+   * Node.js v18.0 o superior instalado.
+   * MySQL Server v8.0 en ejecución.
+   * Navegador moderno (Brave, Firefox, Chrome).
+
+
+   [ 2. PUESTA EN MARCHA DE BASE DE DATOS ]
+   Ejecute los archivos SQL en este orden estricto:
+   
+   1. DDL-2.sql           (Estructura, Índices y Seguridad)
+   2. DML-v1-InkaFood.sql (Datos de catálogo y categorías)
+
+
+   [ 3. INICIO DEL SERVIDOR (BACKEND) ]
+   1. Ingrese a la carpeta 'Backend'.
+   2. Ejecute: npm install
+   3. Configure el archivo '.env':
+      - DB_PASS = [Su contraseña de MySQL]
+      - JWT_SECRET = [Cualquier clave secreta]
+   4. Inicie el servidor: npm run dev
+
+
+   [ 4. INICIO DE LA WEB (FRONTEND) ]
+   1. Ingrese a la carpeta 'Frontend'.
+   2. Ejecute: npm install
+   3. Inicie la aplicación: npm start
+   4. Acceda a: http://localhost:4200
+
+
+   [ 5. VALIDACIÓN DE CALIDAD ]
+   - Pruebas Backend : En /Backend ejecute 'npm test'
+   - Pruebas Frontend: En /Frontend ejecute 'ng test'
+   - Salud Sistema  : Visite http://localhost:5000/api/health

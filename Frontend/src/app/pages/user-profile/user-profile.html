@@ -1,0 +1,315 @@
+
+<div class="user-profile-container">
+
+  
+  <div class="profile-header">
+    <h1>Mi Cuenta</h1>
+    <p>Gestiona tu información personal, pedidos y direcciones.</p>
+  </div>
+
+  
+  <div class="profile-nav">
+    <button (click)="setActiveTab('profile')" [class.active]="activeTab === 'profile'">
+      <i class="bi bi-person-circle"></i> Perfil
+    </button>
+    <button (click)="setActiveTab('orders')" [class.active]="activeTab === 'orders'">
+      <i class="bi bi-box-seam"></i> Mis Pedidos
+    </button>
+    <button (click)="setActiveTab('addresses')" [class.active]="activeTab === 'addresses'">
+      <i class="bi bi-geo-alt"></i> Direcciones
+    </button>
+    <button (click)="setActiveTab('tickets')" [class.active]="activeTab === 'tickets'">
+      <i class="bi bi-headset"></i> Soporte
+    </button>
+    <button (click)="logout()" class="logout-btn">
+      <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+    </button>
+  </div>
+
+  
+  <div class="profile-content">
+
+    
+    <div *ngIf="activeTab === 'profile'" class="tab-pane">
+      <div class="profile-details-form">
+        <div class="form-group">
+          <label for="fullName">Nombre Completo</label>
+          <input type="text" id="fullName" class="form-control" [(ngModel)]="userData.fullName" [disabled]="!isEditing">
+        </div>
+        <div class="form-group">
+          <label for="email">Correo Electrónico</label>
+          <input type="email" id="email" class="form-control" [(ngModel)]="userData.email" disabled>
+        </div>
+        <div class="form-group">
+          <label for="phone">Teléfono</label>
+          <input type="text" id="phone" class="form-control" [(ngModel)]="userData.phone" [disabled]="!isEditing">
+        </div>
+        <div class="form-actions">
+          <button *ngIf="!isEditing" class="btn btn-primary" (click)="toggleEdit()">Editar Perfil</button>
+          <button *ngIf="isEditing" class="btn btn-success" (click)="saveChanges()">Guardar Cambios</button>
+          <button *ngIf="isEditing" class="btn btn-secondary" (click)="toggleEdit()">Cancelar</button>
+          <button class="btn btn-security" (click)="openPasswordModal()">Cambiar Contraseña</button>
+        </div>
+      </div>
+    </div>
+
+    
+    <div *ngIf="activeTab === 'orders'" class="tab-pane">
+      <div *ngIf="!userOrders.length && !ordersError" class="empty-state">No tienes pedidos aún.</div>
+      <div *ngIf="ordersError" class="error-state">{{ ordersError }}</div>
+
+      <div class="item-list">
+        <div *ngFor="let order of userOrders" class="item-card" [class.expanded]="order.expanded">
+          <div class="item-header" (click)="toggleDetails(order)">
+            <span>Pedido #{{ order.idPedido || order.id_pedido }}</span>
+            <span>{{ (order.fecha || order.fecha_pedido) | date:'dd/MM/yyyy' }}</span>
+            <span class="status-badge" [ngClass]="'status-' + order.estado">{{ order.estado }}</span>
+            <i class="arrow-icon" [ngClass]="order.expanded ? 'arrow-up' : 'arrow-down'"></i>
+          </div>
+          <div *ngIf="order.expanded" class="item-details">
+            <div *ngIf="order?.detalles">
+              <div *ngIf="order?.detalles?.length === 0" class="empty-state-inner">
+                No se encontraron detalles para este pedido.
+              </div>
+              <div *ngIf="order?.detalles?.length! > 0">
+                <div class="order-details-grid">
+                  <div *ngFor="let detail of order.detalles" class="product-item">
+                    <img [src]="detail?.imagen ? 'http://localhost:5000/uploads/products/' + detail.imagen : 'assets/pure-inka-logo.png'" 
+                         alt="{{ detail?.producto_nombre || 'Producto' }}"
+                         onerror="this.src='assets/pure-inka-logo.png'">
+                    <div class="product-info">
+                      <span>{{ detail?.producto_nombre || 'Producto' }}</span>
+                      <span>{{ detail?.cantidad }} x S/. {{ (detail?.precio_unitario || detail?.precioUnitario || 0) | number:'1.2-2' }}</span>
+                    </div>
+                    <span class="product-total">S/. {{ ((detail?.cantidad || 0) * (detail?.precio_unitario || detail?.precioUnitario || 0)) | number:'1.2-2' }}</span>
+                  </div>
+                </div>
+                <div class="order-footer d-flex justify-content-between align-items-center mt-3">
+                  <div class="footer-actions d-flex gap-2">
+                    <!-- Solo mostrar el botón de Boleta si el pedido está en un estado que garantiza que ya se generó el PDF legal -->
+                    <a *ngIf="(['PAGADO', 'ENVIADO', 'ENTREGADO'].includes(order.estado.toUpperCase())) && (order.boleta_url || order.comprobantePago)" 
+                       [href]="'http://localhost:5000' + (order.boleta_url || order.comprobantePago)"
+                       target="_blank" class="btn btn-sm btn-outline-danger">
+                      <i class="bi bi-file-earmark-pdf me-1"></i> Ver Boleta
+                    </a>
+
+                    <!-- Botón de Cancelar Pedido (RF-39) -->
+                    <button *ngIf="order.estado.toUpperCase() === 'PENDIENTE'" 
+                            (click)="cancelOrder(order.idPedido || order.id_pedido)"
+                            class="btn btn-sm btn-outline-warning">
+                      <i class="bi bi-x-octagon me-1"></i> Cancelar Pedido
+                    </button>
+                  </div>
+
+                  <!-- Si está pendiente, podemos mostrar un mensaje informativo opcional -->
+                  <span *ngIf="order.estado.toUpperCase() === 'PENDIENTE'" class="small text-muted italic">
+                    <i class="bi bi-clock me-1"></i> Pago en validación
+                  </span>
+
+                  <strong>Total: S/. {{ (order?.totalPagar || order?.total || 0) | number:'1.2-2' }}</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    
+    <div *ngIf="activeTab === 'addresses'" class="tab-pane">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>Mis Direcciones</h3>
+        <button class="btn btn-success" (click)="openAddressModal()">
+          <i class="bi bi-plus-circle me-2"></i> Nueva Dirección
+        </button>
+      </div>
+
+      <div *ngIf="!direcciones.length" class="empty-state">No tienes direcciones registradas.</div>
+
+      <div class="address-grid">
+        <div *ngFor="let dir of direcciones" class="address-card">
+          <div class="address-header">
+            <span class="badge bg-secondary">{{ (dir.tipo || 'Dirección') | uppercase }}</span>
+            <div class="address-actions">
+              <button class="btn-icon edit" (click)="openEditAddressModal(dir)" title="Editar">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button class="btn-icon delete" (click)="deleteAddress(dir.idDireccion || dir.id_direccion || 0)" title="Eliminar">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </div>
+          <div class="address-body">
+            <p><strong>{{ dir.nombre_receptor || userData.fullName }}</strong></p>
+            <p>{{ dir.direccion }}</p>
+            <p>{{ dir.distrito || dir.ciudad }}, {{ dir.pais || 'Perú' }}</p>
+            <p *ngIf="dir.referencia" class="text-muted small">Ref: {{ dir.referencia }}</p>
+            <p *ngIf="dir.codigo_postal">C.P.: {{ dir.codigo_postal }}</p>
+            <p class="text-muted small"><i class="bi bi-telephone me-1"></i> {{ dir.telefono_receptor || userData.phone }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Soporte / Tickets Tab (HU N° 28 / RF-52) -->
+    <div *ngIf="activeTab === 'tickets'" class="tab-pane">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>Tickets de Soporte</h3>
+      </div>
+
+      <!-- Formulario de creación de ticket -->
+      <div class="card p-4 mb-4 shadow-sm border-0 bg-white rounded-3">
+        <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-chat-left-text me-2 text-primary"></i>Crear Nuevo Ticket</h5>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="ticketAsunto" class="form-label fw-semibold text-secondary">Asunto *</label>
+            <input type="text" id="ticketAsunto" class="form-control" [(ngModel)]="newTicket.asunto" placeholder="Ej. Retraso en mi pedido">
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="ticketCategoria" class="form-label fw-semibold text-secondary">Categoría *</label>
+            <select id="ticketCategoria" class="form-select" [(ngModel)]="newTicket.categoria">
+              <option value="Soporte Técnico">Soporte Técnico</option>
+              <option value="Facturación">Facturación</option>
+              <option value="Pedidos / Envío">Pedidos / Envío</option>
+              <option value="Otros">Otros</option>
+            </select>
+          </div>
+          <div class="col-12 mb-3">
+            <label for="ticketDescripcion" class="form-label fw-semibold text-secondary">Descripción de tu consulta *</label>
+            <textarea id="ticketDescripcion" class="form-control" rows="3" [(ngModel)]="newTicket.descripcion" placeholder="Detalla lo más posible tu problema..."></textarea>
+          </div>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mt-2 flex-wrap gap-2">
+          <div *ngIf="ticketMessage" class="alert mb-0 px-3 py-2 border-0" [ngClass]="ticketMessageType === 'success' ? 'alert-success' : 'alert-danger'">
+            {{ ticketMessage }}
+          </div>
+          <div *ngIf="!ticketMessage"></div>
+          <button class="btn btn-primary px-4 py-2" (click)="submitTicket()" [disabled]="isSubmittingTicket">
+            <span *ngIf="isSubmittingTicket" class="spinner-border spinner-border-sm me-2"></span>
+            Enviar Ticket
+          </button>
+        </div>
+      </div>
+
+      <!-- Listado de tickets existentes -->
+      <div *ngIf="ticketsLoading" class="text-center py-4">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="text-muted mt-2">Cargando tus tickets...</p>
+      </div>
+
+      <div *ngIf="ticketsError" class="alert alert-danger">{{ ticketsError }}</div>
+
+      <div *ngIf="!ticketsLoading && !ticketsError && tickets.length === 0" class="empty-state text-center py-5 bg-white rounded-3 shadow-sm">
+        <i class="bi bi-chat-square-dots text-muted fs-1 mb-2 d-block"></i>
+        No tienes tickets de soporte registrados.
+      </div>
+
+      <div *ngIf="!ticketsLoading && tickets.length > 0" class="item-list">
+        <div *ngFor="let t of tickets" class="item-card p-3 mb-3 border rounded shadow-sm bg-white">
+          <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+            <h6 class="fw-bold mb-0 text-dark">{{ t.asunto }}</h6>
+            <span class="badge" [ngClass]="t.estado === 'ABIERTO' ? 'bg-warning text-dark' : (t.estado === 'RESPONDIDO' ? 'bg-success' : 'bg-secondary')">
+              {{ t.estado }}
+            </span>
+          </div>
+          <div class="mb-2 text-muted small">
+            <span class="me-3"><strong>Categoría:</strong> {{ t.categoria }}</span>
+            <span><strong>Creado:</strong> {{ t.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+          <p class="mb-2 text-secondary" style="white-space: pre-line;">{{ t.descripcion }}</p>
+          <div *ngIf="t.respuesta" class="mt-3 p-3 bg-light rounded border-start border-primary border-4">
+            <div class="fw-bold text-primary mb-1"><i class="bi bi-reply-fill me-1"></i>Respuesta del Soporte:</div>
+            <p class="mb-0 text-dark" style="white-space: pre-line;">{{ t.respuesta }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<div *ngIf="showAddressModal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>{{ isEditingAddress ? 'Editar Dirección' : 'Nueva Dirección' }}</h3>
+      <button class="close-btn" (click)="closeAddressModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="nombre_receptor">Nombre del Receptor *</label>
+        <input type="text" id="nombre_receptor" class="form-control" [(ngModel)]="newAddress.nombre_receptor"
+          placeholder="Quién recibe">
+      </div>
+      <div class="form-group">
+        <label for="telefono_receptor">Teléfono del Receptor *</label>
+        <input type="text" id="telefono_receptor" class="form-control" [(ngModel)]="newAddress.telefono_receptor"
+          placeholder="Contacto">
+      </div>
+      <div class="form-group">
+        <label for="direccion">Dirección *</label>
+        <input type="text" id="direccion" class="form-control" [(ngModel)]="newAddress.direccion"
+          placeholder="Calle, número, referencia">
+      </div>
+      <div class="row">
+        <div class="col-md-6">
+          <div class="form-group">
+            <label for="distrito">Distrito *</label>
+            <input type="text" id="distrito" class="form-control" [(ngModel)]="newAddress.distrito">
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-group">
+            <label for="referencia">Referencia</label>
+            <input type="text" id="referencia" class="form-control" [(ngModel)]="newAddress.referencia">
+          </div>
+        </div>
+      </div>
+      
+      <div *ngIf="addressMessage" class="alert"
+        [ngClass]="addressMessageType === 'success' ? 'alert-success' : 'alert-danger'">
+        {{ addressMessage }}
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="closeAddressModal()">Cancelar</button>
+      <button class="btn btn-primary" (click)="saveAddress()" [disabled]="isSubmittingAddress">
+        {{ isSubmittingAddress ? 'Guardando...' : 'Guardar Dirección' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<div *ngIf="showPasswordModal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Cambiar Contraseña</h3>
+      <button class="close-btn" (click)="closePasswordModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="currentPassword">Contraseña Actual</label>
+        <input type="password" id="currentPassword" class="form-control" [(ngModel)]="passwordData.current">
+      </div>
+      <div class="form-group">
+        <label for="newPassword">Nueva Contraseña</label>
+        <input type="password" id="newPassword" class="form-control" [(ngModel)]="passwordData.new">
+      </div>
+      <div class="form-group">
+        <label for="confirmPassword">Confirmar Nueva Contraseña</label>
+        <input type="password" id="confirmPassword" class="form-control" [(ngModel)]="passwordData.confirm">
+      </div>
+      <div *ngIf="passwordMessage" class="alert"
+        [ngClass]="passwordMessageType === 'success' ? 'alert-success' : 'alert-danger'">
+        {{ passwordMessage }}
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="closePasswordModal()">Cancelar</button>
+      <button class="btn btn-primary" (click)="changePassword()" [disabled]="isChangingPassword">
+        {{ isChangingPassword ? 'Cambiando...' : 'Cambiar Contraseña' }}
+      </button>
+    </div>
+  </div>
+</div>

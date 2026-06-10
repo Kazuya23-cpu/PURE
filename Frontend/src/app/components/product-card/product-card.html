@@ -1,0 +1,63 @@
+<article class="product-card" [attr.aria-label]="'Producto: ' + product.name" [class.out-of-stock]="isOutOfStock">
+  
+  <div class="product-image-wrapper" (click)="onViewDetail()" style="cursor: pointer;" role="button" [attr.aria-label]="'Ver detalles de ' + product.name">
+    <img
+      [src]="getImageUrl()"
+      [alt]="'Imagen de ' + product.name"
+      class="product-image"
+      (error)="onImageError($event)"
+      loading="lazy"
+    />
+
+    @if (isOutOfStock) {
+      <span class="badge-stock out-of-stock-badge">Agotado</span>
+    } @else if (isLowStock) {
+      <span class="badge-stock low-stock-badge">¡Casi agotado!</span>
+    }
+  </div>
+
+  
+  <div class="card-content">
+    <h3 class="product-title" [title]="product.name" (click)="onViewDetail()" style="cursor: pointer;">
+      {{ product.name }}
+    </h3>
+
+    <!-- Stars rating summary -->
+    <div class="d-flex align-items-center mb-2 mt-1" style="min-height: 20px;">
+      @if ((product.totalResenas ?? 0) > 0) {
+        <div class="text-warning me-1 small">
+          @for (star of [1,2,3,4,5]; track star) {
+            <i class="bi" [class.bi-star-fill]="star <= (product.promedioResenas ?? 0)" [class.bi-star]="star > (product.promedioResenas ?? 0)"></i>
+          }
+        </div>
+        <span class="text-muted" style="font-size: 0.75rem;">({{ product.totalResenas }})</span>
+      } @else {
+        <span class="text-muted italic" style="font-size: 0.75rem;">Sin calificaciones</span>
+      }
+    </div>
+
+    <div class="mt-auto">
+      <div class="product-price">
+        {{ formattedPrice() }}
+      </div>
+
+      <button
+        (click)="onAddToCart()"
+        class="btn-add-cart w-100"
+        [disabled]="isAdded || isOutOfStock"
+        [attr.aria-label]="isOutOfStock ? 'Producto agotado' : (isAdded ? 'Producto añadido al carrito' : 'Añadir ' + product.name + ' al carrito')"
+      >
+        @if (isOutOfStock) {
+          <i class="bi bi-x-circle"></i>
+          <span>Agotado</span>
+        } @else if (isAdded) {
+          <i class="bi bi-check-circle-fill"></i>
+          <span>¡Añadido!</span>
+        } @else {
+          <i class="bi bi-cart-plus"></i>
+          <span>Añadir</span>
+        }
+      </button>
+    </div>
+  </div>
+</article>
